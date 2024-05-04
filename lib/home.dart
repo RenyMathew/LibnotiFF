@@ -16,12 +16,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<DateTime> _dueDates = [
-    DateTime(2024, 04, 18),
-    DateTime(2024, 04, 23),
-    DateTime(2024, 04, 2),
-    DateTime(2024, 05, 2),
-  ];
+  List<DateTime> _dueDates = [];
 
   int indexNum = 1;
 
@@ -29,6 +24,31 @@ class _HomePageState extends State<HomePage> {
   DateTime _focusedDay = DateTime.now();
 
   DateTime _lastBackButtonPressTime = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDueDates();
+  }
+
+  void _loadDueDates() async {
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection('entries')
+        .where('RegNo', isEqualTo: widget.loggedInEmail)
+        .get();
+
+    setState(() {
+      _dueDates = snapshot.docs.map((doc) {
+        DateTime? returnDate = DateTime.tryParse(doc['ReturnDate'] ?? "");
+        if (returnDate != null) {
+          return DateTime(returnDate.year, returnDate.month, returnDate.day);
+        } else {
+          return DateTime.now();
+        }
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +173,7 @@ class _HomePageState extends State<HomePage> {
                                 shape: BoxShape.circle,
                               ),
                               child: Text(
-                                date.day.toString(),
+                                DateFormat('yyyy-MM-dd').format(date),
                                 style: TextStyle(color: Colors.white),
                               ),
                             );
