@@ -92,16 +92,14 @@ class _AdminCrudState extends State<AdminCrud> {
       'BookName': bookName,
       'Author': author,
       if (_manualTakeDate) 'TakeDate': _takeDate.toString(),
-      'ReturnDate': _returnDate.toString(),
+      'ReturnDate': _manualTakeDate
+          ? _takeDate.add(const Duration(days: 15)).toString()
+          : _returnDate.toString(),
       'BookStatus': _bookStatus,
-      'BookID': '', // Placeholder for BookID
     };
 
     final entryRef =
         await FirebaseFirestore.instance.collection('entries').add(entry);
-
-    // Update the entry with the generated BookID
-    await entryRef.update({'BookID': entryRef.id});
 
     // Add user data to 'users' collection
     await FirebaseFirestore.instance.collection('users').add({
@@ -124,7 +122,9 @@ class _AdminCrudState extends State<AdminCrud> {
       _bookNameController.clear();
       _authorController.clear();
       if (!_manualTakeDate) _takeDate = DateTime.now();
-      _returnDate = _takeDate.add(const Duration(days: 15));
+      _returnDate = _manualTakeDate
+          ? _takeDate.add(const Duration(days: 15))
+          : DateTime.now().add(const Duration(days: 15));
       _bookStatus = 'borrowed';
       _extendCount = 0;
     });
