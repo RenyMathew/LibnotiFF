@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'bookdetails.dart';
 import 'login.dart';
@@ -88,9 +89,11 @@ class _HomePageState extends State<HomePage> {
             showSelectedLabels: true,
             selectedItemColor: Colors.indigo,
             currentIndex: indexNum,
-            onTap: (int index) {
+            onTap: (int index) async{
               if (index != indexNum) {
                 if (index == 0) {
+                      final sharedPref =await SharedPreferences.getInstance();
+                      sharedPref.clear();
                   Navigator.of(context).pushReplacement(
                       MaterialPageRoute(builder: (context) => Login()));
                 } else if (index == 2) {

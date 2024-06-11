@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:libnotif/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'home.dart';
 import 'admin_login.dart'; // Import your admin login page
 
@@ -140,6 +142,9 @@ class Login extends StatelessWidget {
       if (documents.isNotEmpty) {
         Authentication.loggedInEmail = _registerNo;
         Authentication.loggedInPassword = _dob;
+        final sharedPref = await SharedPreferences.getInstance();
+        sharedPref.setBool(LOGIN, true);
+        sharedPref.setString(REGISTERNO, _registerNo);
 
         Navigator.push(
           ctx,

@@ -38,6 +38,7 @@ dependencies:
   table_calendar: ^3.1.1
   double_back_to_close:
   cloud_firestore: ^4.17.2
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:

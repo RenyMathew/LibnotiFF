@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:libnotif/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'admin.dart';
 
 class AdminLoginPage extends StatefulWidget {
@@ -24,6 +26,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       final adminData = doc.data();
       if (adminData['email'] == email && adminData['password'] == password) {
         // Navigate to admin.dart
+        final sharedPref = await SharedPreferences.getInstance();
+        sharedPref.setBool(ADMIN, true);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => AdminPage()),

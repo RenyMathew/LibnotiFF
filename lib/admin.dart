@@ -1,5 +1,7 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
 
 class AdminPage extends StatelessWidget {
@@ -14,8 +16,10 @@ class AdminPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
+            onPressed: () async {
               // Navigate back to AdminLoginPage on logout button press
+              final sharedPref = await SharedPreferences.getInstance();
+              sharedPref.clear();
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => Login()),

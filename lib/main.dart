@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:libnotif/admin.dart';
+import 'package:libnotif/home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+const LOGIN = "LOGIN_KEY";
+const REGISTERNO = "REGISTER_NO";
+const ADMIN = "ADMIN";
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -72,8 +78,7 @@ class MyApp extends StatelessWidget {
                       builder: (context) => ElevatedButton(
                         onPressed: () {
                           // Navigate to a new screen named "SecondScreen"
-                          Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(builder: (context) => Login()));
+                          checkLogin(context);
                         },
                         child: Text(
                           "Get Started",
@@ -93,5 +98,28 @@ class MyApp extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void checkLogin(BuildContext context) async {
+    final sharedPref = await SharedPreferences.getInstance();
+    final _userLogin = sharedPref.getBool(LOGIN);
+    final _registerNo = sharedPref.getString(REGISTERNO);
+    final _admin = sharedPref.getBool(ADMIN);
+
+    if (_admin != null && _admin == true) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => AdminPage()),
+      );
+    } else if (_userLogin == null || _userLogin == false) {
+      Navigator.of(context)
+          .pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HomePage(loggedInEmail: _registerNo!),
+        ),
+      );
+    }
   }
 }
