@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:libnotif/admin.dart';
 import 'package:libnotif/home.dart';
+import 'package:libnotif/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'login.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 const LOGIN = "LOGIN_KEY";
 const REGISTERNO = "REGISTER_NO";
 const ADMIN = "ADMIN";
-Future<void> main() async {
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
       options: FirebaseOptions(
@@ -18,7 +22,48 @@ Future<void> main() async {
           projectId: 'libn-7d7ca',
           storageBucket: 'libn-7d7ca.appspot.com'));
 
+  tz.initializeTimeZones();
+  initializeNotifications();
+
   runApp(MyApp());
+}
+
+void initializeNotifications() async {
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+}
+
+Future<void> scheduleNotification(DateTime dueDate, int notificationId) async {
+  final tz.TZDateTime scheduledDate = tz.TZDateTime.from(dueDate, tz.local);
+
+  const AndroidNotificationDetails androidPlatformChannelSpecifics =
+      AndroidNotificationDetails(
+    'due_date_channel', // Channel ID
+    'Due Date Reminders', // Channel Name
+    //'No', // Channel Description
+    importance: Importance.max,
+    priority: Priority.high,
+  );
+
+  const NotificationDetails platformChannelSpecifics = NotificationDetails(
+    android: androidPlatformChannelSpecifics,
+  );
+
+  await flutterLocalNotificationsPlugin.zonedSchedule(
+    notificationId,
+    'Reminder',
+    'Your due date is today!',
+    scheduledDate,
+    platformChannelSpecifics,
+    androidAllowWhileIdle: true,
+    uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.absoluteTime,
+    matchDateTimeComponents: DateTimeComponents.time,
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -35,9 +80,7 @@ class MyApp extends StatelessWidget {
         backgroundColor: Color(0xff99baff),
         body: SafeArea(
           child: Stack(
-            // Use Stack to position elements on top of each other
             children: [
-              // Centered content with logo and text
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -64,10 +107,8 @@ class MyApp extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Positioned button above the bottom navigation bar
               Positioned(
-                bottom: 100.0, // Adjust spacing from bottom as needed
+                bottom: 100.0,
                 left: 0,
                 right: 0,
                 child: Center(
@@ -77,16 +118,15 @@ class MyApp extends StatelessWidget {
                     child: Builder(
                       builder: (context) => ElevatedButton(
                         onPressed: () {
-                          // Navigate to a new screen named "SecondScreen"
                           checkLogin(context);
+                          scheduleDueDateNotifications();
                         },
                         child: Text(
                           "Get Started",
                           style: TextStyle(color: Colors.white),
                         ),
                         style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.black),
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
                         ),
                       ),
                     ),
@@ -112,14 +152,26 @@ class MyApp extends StatelessWidget {
         MaterialPageRoute(builder: (context) => AdminPage()),
       );
     } else if (_userLogin == null || _userLogin == false) {
-      Navigator.of(context)
-          .pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => Login()),
+      );
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => HomePage(loggedInEmail: _registerNo!),
         ),
       );
+    }
+  }
+
+  void scheduleDueDateNotifications() {
+    List<DateTime> dueDates = [
+      DateTime(2024, 6, 15, 8, 0, 0),
+      // Add more due dates here
+    ];
+
+    for (int i = 0; i < dueDates.length; i++) {
+      scheduleNotification(dueDates[i], i);
     }
   }
 }
